@@ -4,6 +4,7 @@ r"""Run the pipeline notebooks without Jupyter.
     py -u run_pipeline.py 1 2 3 4 5 6
     py -u run_pipeline.py 2 4 5 --only Population
     py -u run_pipeline.py 6 --only Population --only Labor
+    py -u run_pipeline.py 1 --only Health --country Bahrain
 
 A run takes minutes and its progress bar has to stay readable while it goes, so
 the notebooks are executed cell by cell from here and the output redirected to a
@@ -33,7 +34,7 @@ NOTEBOOKS = {
 }
 
 
-def run(number, only):
+def run(number, only, countries):
     """Execute one notebook's code cells in order, into a namespace of its own."""
     name = NOTEBOOKS[number]
     print("\n" + "=" * 78, flush=True)
@@ -50,9 +51,16 @@ def run(number, only):
 
         # The config cell is where CHAPTERS is set. Overriding it here rather
         # than editing the notebook keeps the committed default honest.
-        if cell.get("id") == "config" and only:
-            namespace["CHAPTERS"] = list(only)
-            print(f"  (CHAPTERS overridden to {list(only)} for this run)", flush=True)
+        if cell.get("id") == "config":
+            if only:
+                namespace["CHAPTERS"] = list(only)
+                print(f"  (CHAPTERS overridden to {list(only)} for this run)", flush=True)
+            # Only notebook 1 reads COUNTRIES - it is the one that opens the
+            # questionnaires. Everything downstream inherits the restriction
+            # through the long file it writes.
+            if countries and "COUNTRIES" in namespace:
+                namespace["COUNTRIES"] = list(countries)
+                print(f"  (COUNTRIES overridden to {list(countries)} for this run)", flush=True)
     return namespace
 
 
@@ -62,9 +70,12 @@ parser.add_argument("notebooks", nargs="+", choices=sorted(NOTEBOOKS),
                     help="which notebooks to run, in the order given")
 parser.add_argument("--only", action="append", metavar="CHAPTER",
                     help="limit the run to this chapter; repeatable")
+parser.add_argument("--country", action="append", metavar="COUNTRY",
+                    help="limit notebook 1 to questionnaires whose file name "
+                         "carries this country; repeatable. For a test run.")
 arguments = parser.parse_args()
 
 for number in arguments.notebooks:
-    run(number, arguments.only)
+    run(number, arguments.only, arguments.country)
 
 print("\nDONE", flush=True)
