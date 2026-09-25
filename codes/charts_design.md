@@ -12,9 +12,11 @@ Run it after notebook 4. It reads the same long files notebook 5 does, so it
 picks up the merged questionnaire rows and the calculated indicators. It is
 independent of notebook 5 — neither needs the other.
 
-`CHAPTERS` at the top of the config cell picks what runs. It is currently
-`["Population", "Labor"]` — the two chapters with long files. Set it to `None`
-to chart every chapter found on disk.
+`CHAPTERS` at the top of the config cell picks what runs. It currently lists
+all six — Population, Housing, Health, Education, Labor, Poverty. Set it to
+`None` to chart whatever has a long file on disk instead, or cut it down to
+restrict one run. A chapter with no long file yet is reported as
+`chapter failed` and does not stop the run.
 
 ## What is being copied
 
