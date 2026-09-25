@@ -283,10 +283,12 @@
 
 ## Running it
 
-Two ways, and both are fine. Either way, a full run starts with
-`data quality/Compendium_Data_Quality.ipynb`'s Part 1 and stops there —
-review its findings, correct whatever they call for directly, then resume
-with notebook 1.
+- Two ways, and both are fine — by hand in Jupyter/VS Code, or through Claude.
+- **Either way, a full run starts with
+  `data quality/Compendium_Data_Quality.ipynb`'s Part 1 and stops there.**
+  - Review its findings.
+  - Correct whatever they call for, directly in the source files.
+  - Then resume with notebook 1.
 
 ### Running it yourself, in Jupyter or VS Code
 
@@ -333,9 +335,10 @@ PYTHONIOENCODING=utf-8 PYTHONUTF8=1 py -u run_pipeline.py 2 4 5 --only Populatio
 
 ## Where everything lives
 
-Nothing the pipeline reads or writes is inside this repo. Two roots, both
-under `...\OneDrive - United Nations\Desktop\DSS\` — every path is built
-from `Path.home()`, so whose account it sits under never has to be typed:
+- **Nothing the pipeline reads or writes is inside this repo.**
+- Two roots, both under `...\OneDrive - United Nations\Desktop\DSS\`.
+  - Every path is built from `Path.home()`, so whose account it sits under
+    never has to be typed.
 
 ```
 DATA COLLECTOR\                        shared with the original pipeline - inputs only, never written
@@ -393,68 +396,6 @@ COMPENDIUM ARAB SOCIETY - V2\
   - Read by notebook 1's `clean_one_value()` — see **Things that look wrong
     but are deliberate** below. Edited directly by a person, the same as
     `translation dict_V2.xlsx` above — nothing writes it automatically.
-
-## Where the data stands
-
-- **Population** is current, through the full pipeline since the reorder.
-  - 389,075 rows, 317 calculated, 41 tabulation sheets/language.
-  - 36 charts (1.x, 2.1–2.5, a pyramid per country).
-  - 2.6/2.7 are written but undrawn — no questionnaire reports child
-    marriage or early childbearing yet.
-- **Labor's long files and charts are current; its tabulations are not.**
-  - `Labor_AR.xlsx`/`_EN.xlsx` match row for row (168,597 each, re-run 10
-    September).
-  - Charts 6.1–6.8 redrawn 10 September, correct.
-  - `tabulations\Labor_tabulations_*.xlsx` are still from 3–4 September,
-    built from the old file — re-run notebook 5 on Labor before reading
-    those.
-- **Poverty** is current, full pipeline run 9 September 2026.
-  - 8,757 rows, no calculated rows (none of notebook 2's population-based
-    indicators), 5 tabulation sheets/language, all 5 charts (7.1–7.5).
-  - Qatar's `Poverty_4` (source-citation table, no response rows) and the
-    United Arab Emirates' `Poverty_5` (data-table header cell blank instead
-    of `index`) are genuine source-file faults — skipped and logged, not
-    fixed.
-- **Health** is current, full pipeline run 24 September 2026 — its first
-  ever run through notebook 1; earlier runs only ever had external data.
-  - 49,598 rows (44,682 from 22 countries' real questionnaires + 4,916
-    external), no calculated rows (no population-size indicator to build
-    a sex ratio or age share from), 49 tabulation sheets/language.
-  - 142 dictionary additions closed in this run: 110 Kind 1 (Arabic →
-    English, almost entirely Source citations — statistical bodies, survey
-    names — never translated before) and 32 Kind 3 (English → Arabic, the
-    external file's indicator names and citations).
-  - 13 of 14 hand-written charts draw (4.1–4.8, 4.10–4.14). 4.9 (disability)
-    is retired — the source data has no disability indicator at all
-    anymore, in either the questionnaires or the external file; its chart
-    code and stale output files were removed 24 September 2026 rather than
-    leaving a chart that can never draw. 4.9 is not reused for anything
-    else, the same way Population leaves 2.6/2.7 as a gap.
-- **Housing** is current, full pipeline run 17 September 2026.
-  - 58,689 rows from 22 questionnaires, no calculated rows, 8 tabulation
-    sheets/language.
-  - All 7 hand-written charts draw (3.1–3.7) — coverage improved sharply
-    after the 22 September chart-logic fixes (see **Things that look wrong
-    but are deliberate** and `charts_design.md`'s "data guards"): 3.1 went
-    from 1 country to 11, 3.3/3.4 from undrawn to 5/6, 3.5 from 1 to 7.
-  - Not yet re-run since the `total_slice()` fix specifically, which
-    touches some of the same charts.
-  - No external data — `external data\Housing\` is empty.
-- **Education** is current, full pipeline run 14 September 2026 (notebook 3
-  a no-op — `external data\Education\` is empty).
-  - 48,648 rows, no calculated rows, 10 tabulation sheets/language, 7
-    charts (5.1–5.7).
-  - 268 label corrections and 36 new Source citations closed on the 14
-    September run — net-new statistical bodies: Iraq's Central Statistical
-    Organisation, Qatar's Planning and Statistics Authority, UNESCO
-    Institute for Statistics (UIS), and several ministries of education.
-  - Charts rebuilt twice on 22 September: first after the `total_slice()`
-    fix (5.6 pupil-teacher-secondary went from 1 country to 13), then again
-    after fixing `chart_pupil_teacher()`'s primary/secondary level-picking,
-    which had still capped 5.5 at 2 countries (Egypt, Jordan) even after
-    the `total_slice()` fix — see **Things that look wrong but are
-    deliberate**.
-  - 5.5 now draws 15 countries.
 
 ## Conventions
 
@@ -622,18 +563,7 @@ COMPENDIUM ARAB SOCIETY - V2\
 - **Two Health sheets use a legacy layout** and fail at `extract`:
   - `Iraq health.xlsx` → `Iraq health - Health_4_a`
   - `jordan health.xlsx` → `Health_1_a`
-- **Health's external sample file, sheet `4.10`, has a stray value with no
-  header anywhere above it** (Syrian Arab Republic, 2023, one cell one
-  column too far right).
-  - This used to cost the whole sheet — 781 otherwise-good figures across
-    all 22 countries — before notebook 3 was changed to leave out just that
-    one column instead.
-  - The same sheet's "Number of beds per 1000" and "population" columns
-    read as two genuinely separate figures, not one header wrapped across
-    two cells — the population column's values match the countries' real
-    populations — but "Number of beds per 1000" alone reads as an
-    incomplete sentence either way.
-  - Worth a source check regardless.
+
 - **43 English terms have more than one Arabic spelling.**
   - Harmless now that nothing is back-translated — the dictionary is only
     ever read Arabic → English, and several Arabic spellings mapping to one
