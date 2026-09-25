@@ -209,17 +209,22 @@
     file to apply), with the run stopped until they do.
   - The two are meant to meet in the middle: the more the before-loop
     closes, the fewer the resumed run turns up.
-- **A Source/citation translation is never written to the dictionary.** It
-  is still translated, and still reported — `update_dictionary()` logs every
-  Source row it was handed as `source translation not added to the
-  dictionary` — but the row itself is refused in code, not left to whoever
-  is running that session to remember.
-  - The V2 dictionary holds the vocabulary the pipeline itself needs —
-    indicator titles, age-group labels, countries, the rest. Per-country
-    citations change with every data update, are reviewed on the run they
-    appear in, and would otherwise be most of what the file grows by.
-  - A citation worth keeping is added to `translation dict_V2.xlsx` by
-    hand, the same way a Part 1 finding is.
+- **A Source/citation is translated, but never written to the dictionary.**
+  - Claude translates it like anything else — a citation left in Arabic in an
+    English deliverable is a defect, not a policy.
+  - It is recorded in **`source translations_V2.xlsx`**, in the V2 root beside
+    the dictionary, by `add_source_translations(pairs, chapter="<Chapter>")`.
+  - `update_dictionary()` **refuses** a Source row outright and logs it as
+    `source translation not added to the dictionary`, so the rule cannot be
+    broken by forgetting it.
+  - Why the split: the same statistical body is written a dozen slightly
+    different ways across twenty-two questionnaires, each with its own
+    qualifier hanging off it. Filed in the dictionary, citations would be most
+    of that file within a chapter or two; the dictionary holds the vocabulary
+    the pipeline itself needs.
+  - `apply_source_translations()` puts them into `<Chapter>_EN.xlsx` on the run
+    that records them and on every later one, so no citation has to be
+    translated twice.
 
 ### Kind 1 — a value the questionnaires used
 
@@ -227,8 +232,9 @@
 - Notebook 4 finds these by comparing the table before and after
   translation — an untranslated value passed through is the gap.
 - Always the English side, since everything travels Arabic → English.
-- **Mostly Source citations, and those are translated but not kept** — see
-  the rule above. Everything else Kind 1 turns up closes normally.
+- **Mostly Source citations**, which close through
+  `add_source_translations()` rather than the dictionary — see the rule above.
+  Everything else Kind 1 turns up closes normally.
 
 ### Kind 2 — a label the pipeline invented
 
@@ -250,9 +256,10 @@
 - Closed the same way as the other two kinds; see notebook 4's own intro
   cell for the two-part run this needs (append first, review
   `EXTERNAL_GAPS`, `update_dictionary()`, then `apply_external_gaps()`).
-- The external file carries citations of its own, and the same rule applies
-  to them: indicator names are kept, Source rows are translated and
-  reported but not written.
+- The external file carries citations of its own, and the same rule applies:
+  indicator names go to the dictionary, citations to
+  `source translations_V2.xlsx`. `translate_external_to_arabic()` reads that
+  same file the other way round, English → Arabic.
 
 ### The loop, any kind
 
@@ -268,12 +275,12 @@
    `status = "updated"` so machine translations can be told from hand-typed
    ones, and logs every row it actually adds to that chapter's own
    `pipeline_changes_<Chapter>.txt` as `dictionary entry added`.
-   - Hand it the Source rows too. It refuses them itself and logs each one
-     as `source translation not added to the dictionary`, so the
-     translation is on the record either way.
-5. Re-run the notebook and confirm the gap list in
-   `need manual intervention_<Chapter>.txt` holds nothing but Source rows,
-   which stay there by design.
+   - Hand it the Source rows too if it is easier — it refuses them itself and
+     logs each one — but the call that actually lands them is
+     `add_source_translations(pairs, chapter="<Chapter>")`.
+5. Re-run the notebook and confirm both gap lists in
+   `need manual intervention_<Chapter>.txt` are empty — `4. TRANSLATION` for
+   vocabulary and `4c. SOURCE CITATIONS` for citations.
 6. Report what you added, and flag any translation involving real judgement.
 
 - **Attach translations by position, never by retyping the Arabic or
@@ -352,6 +359,7 @@ DATA COLLECTOR\                        shared with the original pipeline - input
 
 COMPENDIUM ARAB SOCIETY - V2\
 ├── translation dict_V2.xlsx     the dictionary - V2's own, in the root beside the outputs
+├── source translations_V2.xlsx  citations Claude translated - deliberately NOT in the dictionary
 ├── longfiles\          <Chapter>_AR.xlsx, _EN.xlsx, _EN_questionnaires.xlsx, _EN_external.xlsx
 ├── tabulations\                <Chapter>_tabulations_<LANG>.xlsx
 ├── charts\<chapter>\         the SVGs, PNGs, workbook, index and findings
@@ -388,6 +396,15 @@ COMPENDIUM ARAB SOCIETY - V2\
     `المصدر` or `col_en` `Source`, so it catches one arriving from either
     direction — and logs it as `source translation not added to the
     dictionary` instead. See **Filling dictionary gaps** above for why.
+- `source translations_V2.xlsx` has `chapter`, `val_ar`, `val_en`, plus
+  `status` and `date`.
+  - Read both ways: Arabic → English for the questionnaires, English → Arabic
+    for external data's own citations.
+  - Written only by `add_source_translations()` (notebook 4), which backs the
+    file up first, skips citations already on file, and logs every row it adds
+    as `source translation recorded`.
+  - A row with no `chapter` answers for every chapter, which is what a body
+    cited across several of them needs.
   - **Edited directly by a person for a Part 1 finding** — there is no
     notebook-driven path from "Part 1 found a label" to a dictionary row
     anymore; see `data quality/CLAUDE.md`.
