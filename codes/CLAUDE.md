@@ -11,17 +11,17 @@
 | 3 | `Compendium_3_External_Data.ipynb` | `DATA COLLECTOR\external data\<Chapter>\*.xlsx` | `<Chapter>_EN_external.xlsx`, plus a `*_reshaped.xlsx` questionnaire-layout copy beside each source file |
 | 4 | `Compendium_4_Translation.ipynb` | `<Chapter>_AR.xlsx` + `<Chapter>_EN_questionnaires.xlsx` + `<Chapter>_EN_external.xlsx` | `<Chapter>_EN.xlsx`; also appends external data's Arabic form to `<Chapter>_AR.xlsx` |
 | 5 | `Compendium_5_Tabulations.ipynb` | `<Chapter>_EN.xlsx`, `<Chapter>_AR.xlsx` | `tabulations\<Chapter>_tabulations_<LANG>.xlsx` |
-| 6 | `Compendium_6_Charts.ipynb` | `<Chapter>_EN.xlsx` | `<chapter>_charts\` — an SVG and a PNG per figure, `<chapter>_charts.xlsx`, `charts_index.csv`, `chart_data_findings.txt` |
+| 6 | `Compendium_6_Charts.ipynb` | `<Chapter>_EN.xlsx` | `charts\<chapter>\` — an SVG and a PNG per figure, `<chapter>_charts.xlsx`, `charts_index.csv`, `chart_data_findings.txt` |
 
-- `<chapter>_charts.xlsx` lives only in `<chapter>_charts\`, beside the SVGs
+- `<chapter>_charts.xlsx` lives only in `charts\<chapter>\`, beside the SVGs
   and PNGs it indexes.
-  - Not copied into `merged_long_files\`, which is the long files' own — a
+  - Not copied into `longfiles\`, which is the long files' own — a
     copy there would just be one more place for the two to drift apart.
-- Every long file lives in **`merged_long_files\`**, one folder for both
+- Every long file lives in **`longfiles\`**, one folder for both
   languages.
 - **`data quality/Compendium_Data_Quality.ipynb`'s Part 1 runs before all
-  six, and gates them.** It checks the raw questionnaires and
-  `external data\<Chapter>\`, writes its findings to text files, and the
+  six, and gates them.** It checks the raw questionnaires, writes its
+  findings to text files, and the
   pipeline stops there — notebook 1 does not run — until a person has
   reviewed those findings, made whatever corrections they call for, and
   told Claude to resume.
@@ -43,10 +43,12 @@
 - **Notebook 3 reads published indicator tables that never went through a
   questionnaire**, one folder per chapter under
   `DATA COLLECTOR\external data\<Chapter>\`.
-  - Nothing about their layout is assumed — the real sample file had six
-    sheets in three different header shapes.
-  - A column it can't confidently name is left out and reported, without
-    discarding the rest of that sheet's good columns.
+  - Every sheet carries two blocks marked by their own `index` header row —
+    `index = 1` the data, `index = 2` its citation — the same convention
+    notebook 1 reads a questionnaire with.
+  - A sheet whose shape it does not recognize is **refused whole and
+    reported**; there is no partial column to salvage, because there is no
+    shape left to be partially sure of.
   - Follows the `reshape-external-data-questionnaire-layout` skill: besides
     the rows written to `<Chapter>_EN_external.xlsx`, it saves a reshaped,
     questionnaire-layout copy of each source file beside it, for a person to
@@ -105,17 +107,19 @@
   than a shared-log section, because it refuses figures the other five pass
   through — a value orders of magnitude off its own series, or sexes that
   don't sum to their reported total.
-- **Notebook 1 cleans the Value column and reports every change.**
-  - A number wrapped in a recognized unit phrase is scaled to match:
-    `بالالف` and the typo `بالاف` both mean "thousands", so
-    `7845(الاعداد بالالف)` → `7845000`.
-  - A placeholder like `-` becomes blank, and so does a cell holding only
-    spaces — not an empty cell, and otherwise it passes every "is it blank"
-    test through to an unplottable chart value.
-  - `51.2+1.2` is read as a sum.
-  - An unrecognized wrapping phrase is just dropped, keeping the bare number
-    — reported every time, since an unfamiliar phrase could carry a
-    multiplier too, and only the reporting country can say for sure.
+- **The questionnaire workbooks carry validation rules of their own**, so a
+  Value cell can no longer be filled with something unusable.
+  - Notebook 1 no longer blanks placeholders, blanks whitespace-only cells,
+    adds up a `51.2+1.2`, or strips unrecognized wrapping text. That cleaning
+    was removed once the rules made it unnecessary.
+  - **Two corrections are left**, and both were kept on purpose:
+    - a reading a person has already confirmed in `value corrections.xlsx`;
+    - a recognized unit phrase, which scales the number it wraps — `بالالف`
+      and the typo `بالاف` both mean "thousands", so `7845(الاعداد بالالف)`
+      → `7845000`.
+  - Anything else that is not a number is **left exactly as it is and
+    reported**, for the data quality notebook's Part 1 to put in front of a
+    person rather than being guessed at.
 - **A unit note describes the whole column it sits in, not the one cell it's
   written on.**
   - Morocco's 2024 population is `1444`, `1745`, `1815`, … with
@@ -151,16 +155,12 @@
 - **Checking the data lives in `data quality/`**, its own `CLAUDE.md`. Two
   parts of one notebook, sharing nothing but a file:
   - **Part 1 is the pipeline's first step, and gates it** — see the bullet
-    near the top of this file. It scans the raw questionnaires and
-    `external data\<Chapter>\`, and writes one read-only
-    `Data quality issues before pipeline execution_<Chapter>.txt` per
-    chapter — labels the dictionary can't match, Value cells
-    `clean_one_value()` can't parse, structural problems, and now a sheet or
-    column notebook 3 would refuse (found the same way notebook 3 finds it,
-    structural-only — external data has no fixed layout to fuzzy-match
-    labels against). This is Part 1's only output; a person corrects
-    whatever it calls for directly, in the source file, and tells Claude to
-    resume.
+    near the top of this file. It scans the raw questionnaires and writes one
+    read-only `Data quality issues before pipeline execution_<Chapter>.txt`
+    per chapter — labels the dictionary can't match, Value cells
+    `clean_one_value()` can't parse, and structural problems. This is Part 1's
+    only output; a person corrects whatever it calls for directly, in the
+    source file, and tells Claude to resume.
   - **Part 2** reads the finished `<Chapter>_EN.xlsx` files after notebook 4
     and writes `data_gaps_report.xlsx` plus the GitHub Pages dashboard's
     `docs/data.js` — completeness and contradictions across the whole
@@ -202,8 +202,8 @@
   and 4, closed by Claude's own judgement, during the **resumed** part of a
   run, after the quality gate has cleared.
   - The data quality notebook's Part 1 is the *before* loop, and now the
-    pipeline's literal first step — the same two kinds, found by reading raw
-    questionnaires and `external data\<Chapter>\` ahead of a run, closed by
+    pipeline's literal first step — the same two kinds, found by reading the
+    raw questionnaires ahead of a run, closed by
     a person directly (editing the source questionnaire, `translation
     dict_V2.xlsx`, or `value corrections.xlsx` — there is no intermediate
     file to apply), with the run stopped until they do.
@@ -352,9 +352,9 @@ DATA COLLECTOR\                        shared with the original pipeline - input
 
 COMPENDIUM ARAB SOCIETY - V2\
 ├── translation dict_V2.xlsx     the dictionary - V2's own, in the root beside the outputs
-├── merged_long_files\          <Chapter>_AR.xlsx, _EN.xlsx, _EN_questionnaires.xlsx, _EN_external.xlsx
+├── longfiles\          <Chapter>_AR.xlsx, _EN.xlsx, _EN_questionnaires.xlsx, _EN_external.xlsx
 ├── tabulations\                <Chapter>_tabulations_<LANG>.xlsx
-├── <chapter>_charts\           the SVGs, PNGs, workbook, index and findings
+├── charts\<chapter>\         the SVGs, PNGs, workbook, index and findings
 ├── pipeline_changes_<Chapter>.txt            what a resumed run fixed, inferred, or added
 ├── pipeline_changes_general.txt              same, with no chapter of its own
 ├── need manual intervention_<Chapter>.txt    what a resumed run left alone, and why
