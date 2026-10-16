@@ -59,10 +59,10 @@
     `الدولة`, `الجنس`, … in an Arabic file; `Indicator`, `Country`, `Sex`, …
     in an English one. Year columns are digits and are not counted.
   - A header "is Arabic" if it holds at least one letter from the Arabic
-    Unicode block, U+0600–U+06FF. If more than half of a file's headers,
-    across all of its data sheets together, are Arabic, the file is Arabic;
-    otherwise it is English. A file with no usable header falls back to
-    `DEFAULT_LANGUAGE`, Arabic.
+    Unicode block, U+0600–U+06FF. **If at least one of a file's headers,
+    across all of its data sheets together, is Arabic, the file is Arabic**;
+    only a file with no Arabic header at all is English. A file with no
+    usable header falls back to `DEFAULT_LANGUAGE`, Arabic.
   - Headers, not cell values, because values include numbers, codes and
     citations that can be in either script — an Arabic questionnaire often
     cites its source in English.
@@ -430,11 +430,18 @@ COMPENDIUM ARAB SOCIETY - V2\            the git repository's root; every output
     countries), Housing 2,667, Labor 8,883, Population 19,203 (+13
     calculated), Poverty 441.
   - Tabulations for every chapter in both languages; 52 charts.
-  - **Not finished, by this file's own rule**: the dictionary gaps were left
-    open. 50 Arabic values have no English translation yet (almost all
-    Source citations) and 5 external Source URLs no Arabic form, so the
-    English files still carry those values in Arabic and
-    `apply_external_gaps()` has not run.
+  - **Dictionary gaps closed the same day**: 54 rows added to
+    `translation dict_V2.xlsx` (361 → 415), each under its column
+    (`المصدر` / `Source`, one `المواطنة` / `Nationality`) with
+    `status = updated` — 49 Arabic values Claude translated to English
+    through notebook 1's `update_dictionary()`, 48 of them Source
+    citations, and the external file's 5 WHO Source URLs, whose Arabic form is the URL
+    itself, through notebook 4's. `apply_external_gaps()` then wrote
+    Health's 4,916 external rows into `Health_AR.xlsx`, and 1–6 were re-run.
+  - Translations involving judgement: Jordan's Nationality `أردني`
+    ("Jordanian") is filed as `Nationals`, the dictionary's own category;
+    Libya's two documentation-centre citations may name the same body.
+  - One gap is left open on purpose — the `Population_22` header below.
 
 ## Conventions
 
@@ -527,6 +534,16 @@ COMPENDIUM ARAB SOCIETY - V2\            the git repository's root; every output
 
 ## Known issues
 
+- **Jordan's `Population_22` carries its indicator's name in the header cell
+  where `المؤشر` belongs** (`عدد الوفيات والأشخاص المفقودين والأشخاص المتضررين
+  من الكوارث لكل 100,000 شخص`), so its 63 rows reach `Population_EN.xlsx`
+  under an Arabic column of their own instead of `Indicator`.
+  - Not closed through the dictionary: mapping that header to `Indicator`
+    would give the merged English table two `Indicator` columns. Correct
+    the header in the source file to `المؤشر`.
+  - Once it is, the dictionary's existing row for that indicator needs
+    fixing too — its English reads "Number of victims of intentional
+    homicide per 100,000 population", a different indicator.
 - **Qatar's `Poverty_4` is a source-citation table with no response rows** —
   only one `index` row — so notebook 1 skips it at `extract` and logs it.
   A source-file fault; not fixed in code.
