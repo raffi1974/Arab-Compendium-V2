@@ -113,9 +113,11 @@
     and put into `<Chapter>_EN.xlsx`;
   - notebook 3's external rows, in English only — appended to
     `<Chapter>_EN.xlsx`, and given an Arabic form for `<Chapter>_AR.xlsx`
-    once one is on file (`apply_external_gaps()`) — from the dictionary for
-    vocabulary, from `source translations_V2.xlsx`, read English → Arabic,
-    for a Source citation.
+    once one is on file — from the dictionary for vocabulary, from
+    `source translations_V2.xlsx`, read English → Arabic, for a Source
+    citation. Its last cell calls `apply_external_gaps()` by itself for every
+    chapter with no gaps left; a chapter that still has gaps is skipped and
+    named, so the run never stops on it.
 - **Notebook 4 strips before it appends, so it can be re-run on its own.**
   - It edits `<Chapter>_EN.xlsx` in place, the file notebook 1 wrote. It
     first removes every row an earlier run of itself added — calculated rows
@@ -313,7 +315,9 @@
   never back-translating anything already correct.
 - Closed the same way as the other kinds; see notebook 4's own intro cell
   for the two-part run this needs (append first, review `EXTERNAL_GAPS`,
-  `update_dictionary()`, then `apply_external_gaps()`).
+  `update_dictionary()`, then `apply_external_gaps()` — which part 2 already
+  calls by itself for every chapter with no gaps left, so only a chapter that
+  had gaps needs calling again).
 - The external file carries citations of its own, and the same rule applies:
   indicator names go to the dictionary, citations to
   `source translations_V2.xlsx` — for an external citation, its Arabic form.
@@ -356,8 +360,22 @@ with notebook 1.
 
 ### Running it yourself, in Jupyter or VS Code
 
-- Open the notebook and run its cells top to bottom, same as any other
-  notebook — nothing about these requires a special runner.
+- **Open `codes\manual pipeline run\` and run its eight notebooks in name
+  order, each with *Run All*** — `0_Data_Quality_Check` → `1_Long_Files` …
+  `6_Charts` → `7_Data_Quality_Report`. Nothing has to be typed in: every one
+  runs top to bottom on its own, and the next can start as soon as the last
+  has finished.
+  - 0 and 7 are the data quality notebook's two parts, split so the report
+    is written after the pipeline rather than before it.
+  - All eight took about 2 minutes on the six questionnaires of the
+    16 October 2026 test, run exactly this way.
+  - Read the reports 0 writes into `Logs\<Chapter>_Logs\` before going on
+    to 1 — anything left uncorrected is carried into the run as it is.
+- **That folder is generated — never edit a copy in it.** It is built by
+  `make_manual_pipeline_run.py` from the notebooks in `codes\` and
+  `data quality\`; after changing any of them, run
+  `py make_manual_pipeline_run.py` so the copies follow. Claude does this as
+  part of any notebook change.
 - To limit a run to one chapter, edit `CHAPTERS` in the cell whose id is
   `config`:
 
@@ -423,6 +441,7 @@ COMPENDIUM ARAB SOCIETY - V2\            the git repository's root; every output
 │   │                                    Data quality issues before pipeline execution_<Chapter>.txt   Part 1's only output
 │   └── General_Logs\                    the same pair for a finding with no chapter of its own
 └── codes\                               the notebooks, this file, the runner
+    └── manual pipeline run\            the same notebooks numbered 0-7, to Run All by hand - generated
 ```
 
 - Every notebook's `config` cell builds its paths from

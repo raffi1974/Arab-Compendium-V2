@@ -37,10 +37,10 @@ a `<Chapter>_EN.xlsx`; pass it once per chapter to limit the run.
 `run_pipeline.py` executes every code cell in the notebook in order,
 including the external-data-folding section below — so a background run
 covers both jobs in one pass up through appending notebook 3's English rows
-and finding the gaps. It stops there: nothing is written to
-`<Chapter>_AR.xlsx` for external data, and no dictionary gap is closed,
-until you call `apply_external_gaps()` yourself (see below) — that call is
-never automatic, on purpose, the same as the main gap-filling loop.
+and finding the gaps. Its last cell then writes external data's Arabic rows
+to `<Chapter>_AR.xlsx` by itself, for every chapter with no gaps left. A
+chapter that still has gaps is skipped and named in the log, and waits for
+you: no dictionary gap is ever closed automatically.
 
 Re-running is safe: the main run strips `<Chapter>_EN.xlsx` of the calculated
 and external rows an earlier run added before appending them again.
@@ -105,7 +105,7 @@ own log already says so.
    `add_source_translations()` for a Source citation — never the dictionary
    for a citation. Both are defined in this notebook, the second in its
    `sources` cell.
-3. Call `apply_external_gaps()`. It rebuilds notebook 3's appended rows with
+3. Call `apply_external_gaps()` again. It rebuilds notebook 3's appended rows with
    their Arabic form and writes them to `<Chapter>_AR.xlsx` — idempotent, by
    `Data Origin`, so re-running never duplicates.
 4. Report: external rows folded in per chapter, gaps you closed and what you
