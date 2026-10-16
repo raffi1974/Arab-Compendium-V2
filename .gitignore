@@ -1,0 +1,14 @@
+# Pipeline outputs - written here by the notebooks, regenerated on every run
+Merged_long_files/
+Tabulations/
+Charts/
+/pipeline_changes_*.txt
+/need manual intervention_*.txt
+/Data quality issues before pipeline execution_*.txt
+
+# Timestamped dictionary backups written by update_dictionary()
+translation dict_V2 backup *.xlsx
+
+# Excel lock files, created while a workbook is open
+~$*.xlsx
+~$*.xls

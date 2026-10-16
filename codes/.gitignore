@@ -1,0 +1,17 @@
+# Python bytecode, written whenever a script in .claude/skills/ runs
+__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Excel lock files, created while a workbook is open
+~$*.xlsx
+~$*.xls
+
+# Run logs, e.g. run_pipeline.py's output redirected to run.log
+*.log
+
+# Generated report - no .xlsx has ever been committed here; regenerate with
+# Compendium_Data_Quality.ipynb Part 2 rather than tracking the binary
+data quality/data_gaps_report.xlsx
