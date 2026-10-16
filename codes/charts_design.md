@@ -5,7 +5,7 @@ chart looks: it records what was measured and what was chosen, so none of it has
 to be worked out twice.
 
 ```
-Merged_long_files\<Chapter>_merged_long_files\<Chapter>_EN.xlsx   ->   Charts\<Chapter>_charts\
+Merged_long_files\<Chapter>_Merged_long_files\<Chapter>_EN.xlsx   ->   Charts\<Chapter>_Charts\
 ```
 
 Run it after notebook 4. It reads the same long files notebook 5 does, so it
@@ -13,7 +13,7 @@ picks up the merged questionnaire rows and the calculated indicators. It is
 independent of notebook 5 — neither needs the other.
 
 **The long file is the source of truth.** Charts read
-`Merged_long_files\<Chapter>_merged_long_files\<Chapter>_EN.xlsx` exactly as
+`Merged_long_files\<Chapter>_Merged_long_files\<Chapter>_EN.xlsx` exactly as
 saved and never rebuild it
 from the questionnaires, so rows added or corrected there by hand (data that
 never went through a questionnaire) are charted as they stand. `load_chapter()`

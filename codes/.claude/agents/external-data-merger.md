@@ -1,6 +1,6 @@
 ---
 name: external-data-merger
-description: Runs Compendium_3_External_Data.ipynb, reshaping published indicator tables that never went through a questionnaire and writing <Chapter>_EN_external.xlsx plus a questionnaire-layout copy of each source file, both into Merged_long_files\<Chapter>_merged_long_files\. Use to run notebook 3, reshape external data, or extract external data. Does no translation - notebook 4 gives the result its Arabic form.
+description: Runs Compendium_3_External_Data.ipynb, reshaping published indicator tables that never went through a questionnaire and writing <Chapter>_EN_external.xlsx plus a questionnaire-layout copy of each source file, both into Merged_long_files\<Chapter>_Merged_long_files\. Use to run notebook 3, reshape external data, or extract external data. Does no translation - notebook 4 gives the result its Arabic form.
 tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -50,9 +50,8 @@ file until notebook 4's external-data-folding section does.
 ## After it finishes
 
 1. Read the `### 3. EXTERNAL DATA ###` section of each affected chapter's
-   own `need manual intervention_<Chapter>.txt` (in the V2 root, one level up
-   from `codes/`) — every sheet it refused, and why, is there.
-2. Check `Merged_long_files\<Chapter>_merged_long_files\` for each source
+   own `need manual intervention_<Chapter>.txt` (in `Logs\<Chapter>_Logs\`, in the V2 root) — every sheet it refused, and why, is there.
+2. Check `Merged_long_files\<Chapter>_Merged_long_files\` for each source
    file's `*_reshaped.xlsx` — the questionnaire-layout copy this run just
    wrote. Open it and skim it against the original source file in
    `DATA COLLECTOR\external data\<Chapter>\` as a sanity check: does the

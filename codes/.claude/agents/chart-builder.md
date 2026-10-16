@@ -1,6 +1,6 @@
 ---
 name: chart-builder
-description: Runs Compendium_6_Charts.ipynb, drawing each chapter's chart set from the finished English long file into Charts\<Chapter>_charts\. Use to run notebook 6 or build charts. Independent of notebook 5 - both read the finished long files, neither needs the other.
+description: Runs Compendium_6_Charts.ipynb, drawing each chapter's chart set from the finished English long file into Charts\<Chapter>_Charts\. Use to run notebook 6 or build charts. Independent of notebook 5 - both read the finished long files, neither needs the other.
 tools: Bash, Read, Grep, Glob
 ---
 
@@ -36,7 +36,7 @@ guessing at bad ones.
 
 ## After it finishes
 
-Read `chart_data_findings.txt` inside each affected `Charts\<Chapter>_charts\`
+Read `chart_data_findings.txt` inside each affected `Charts\<Chapter>_Charts\`
 folder, not `pipeline_changes_<Chapter>.txt` / `need manual
 intervention_<Chapter>.txt` — this notebook keeps its own findings file per
 chapter, because it refuses figures the other notebooks happily pass through

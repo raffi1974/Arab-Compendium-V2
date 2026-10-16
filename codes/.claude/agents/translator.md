@@ -18,7 +18,7 @@ This notebook has two jobs, run in order: translating notebook 2's calculated
 rows Arabic → English into `<Chapter>_EN.xlsx`, then folding in whatever
 notebook 3 extracted from external data (which needs the opposite direction,
 English → Arabic, since it starts in English). Both files are in
-`Merged_long_files\<Chapter>_merged_long_files\`. The questionnaires were
+`Merged_long_files\<Chapter>_Merged_long_files\`. The questionnaires were
 already translated by notebook 1.
 
 ## Running it
@@ -48,14 +48,13 @@ and external rows an earlier run added before appending them again.
 ## After the calculated rows are translated
 
 1. Read the `### 4. TRANSLATION ###` section of each affected chapter's own
-   `need manual intervention_<Chapter>.txt` (in the V2 root, one level up from
-   `codes/`) — every Arabic value in the calculated rows with no dictionary
+   `need manual intervention_<Chapter>.txt` (in `Logs\<Chapter>_Logs\`, in the V2 root) — every Arabic value in the calculated rows with no dictionary
    entry is there. Gaps in the questionnaires themselves are notebook 1's, in
    its own `1. LONG FILES` section.
 2. If it lists anything to close, follow CLAUDE.md's "Filling dictionary
    gaps" loop. This notebook carries its own `update_dictionary()`, defined
    in its `gaps` cell — get a working one by executing this notebook's cells
-   up to and including `gaps` into a fresh namespace, without running its
+   up to and including `sources` into a fresh namespace, without running its
    main loop:
 
    ```python
@@ -74,7 +73,7 @@ and external rows an earlier run added before appending them again.
                break
        return namespace
 
-   update_dictionary = load_up_to("Compendium_4_Translation.ipynb", "gaps")["update_dictionary"]
+   update_dictionary = load_up_to("Compendium_4_Translation.ipynb", "sources")["update_dictionary"]
    update_dictionary(filled, chapter="<Chapter>")   # filled: DataFrame with col_ar, val_ar, col_en, val_en
    ```
 
@@ -99,10 +98,13 @@ own log already says so.
    notebook's own namespace after the run). This is genuinely new
    English-origin content, so the direction is reversed: give it an Arabic
    form for the first time, never back-translate anything already correct.
-2. Translate each gap yourself (search `translation dict_V2.xlsx` first so
-   wording stays consistent with what is already there), attach by position,
-   never by retyping the Arabic/English keys, then call `update_dictionary()`
-   the same way as above — it is the same function, reused.
+2. Translate each gap yourself (search `translation dict_V2.xlsx` and
+   `source translations_V2.xlsx` first so wording stays consistent with what
+   is already there), attach by position, never by retyping the
+   Arabic/English keys, then call `update_dictionary()` for vocabulary and
+   `add_source_translations()` for a Source citation — never the dictionary
+   for a citation. Both are defined in this notebook, the second in its
+   `sources` cell.
 3. Call `apply_external_gaps()`. It rebuilds notebook 3's appended rows with
    their Arabic form and writes them to `<Chapter>_AR.xlsx` — idempotent, by
    `Data Origin`, so re-running never duplicates.

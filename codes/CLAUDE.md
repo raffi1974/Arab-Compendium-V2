@@ -4,9 +4,10 @@
   and gates them; its Part 2 checks the finished result afterward. Nothing
   in `data quality/` changes data on its own.
 - Every output lands in the V2 root, `C:\RAFFI\DSS-local\COMPENDIUM ARAB
-  SOCIETY - V2\`, in **one folder per chapter** under each kind of output —
-  `Merged_long_files\Population_merged_long_files\`,
-  `Tabulations\Population_tabulations\`, `Charts\Population_charts\`.
+  SOCIETY - V2\`, as **a parent folder per kind of output, with a child folder
+  per chapter named `<Chapter>_<Parent>`** — `Charts\Labor_Charts\`,
+  `Tabulations\Labor_Tabulations\`, `Merged_long_files\Labor_Merged_long_files\`,
+  `Logs\Labor_Logs\`.
 
 | # | Notebook | Reads | Writes |
 |---|---|---|---|
@@ -14,13 +15,13 @@
 | 2 | `Compendium_2_New_Indicators.ipynb` | `<Chapter>_AR.xlsx` | the calculated rows, in Arabic, appended to it |
 | 3 | `Compendium_3_External_Data.ipynb` | `DATA COLLECTOR\external data\<Chapter>\*.xlsx` | `<Chapter>_EN_external.xlsx`, plus a `*_reshaped.xlsx` questionnaire-layout copy of each source file |
 | 4 | `Compendium_4_Translation.ipynb` | `<Chapter>_AR.xlsx` + `<Chapter>_EN_external.xlsx` | the calculated rows, translated, into `<Chapter>_EN.xlsx`; external data appended to it, and its Arabic form to `<Chapter>_AR.xlsx` |
-| 5 | `Compendium_5_Tabulations.ipynb` | `<Chapter>_EN.xlsx`, `<Chapter>_AR.xlsx` | `Tabulations\<Chapter>_tabulations\<Chapter>_tabulations_<LANG>.xlsx` |
-| 6 | `Compendium_6_Charts.ipynb` | `<Chapter>_EN.xlsx` | `Charts\<Chapter>_charts\` — an SVG and a PNG per figure, `<Chapter>_charts.xlsx`, `charts_index.csv`, `chart_data_findings.txt` |
+| 5 | `Compendium_5_Tabulations.ipynb` | `<Chapter>_EN.xlsx`, `<Chapter>_AR.xlsx` | `Tabulations\<Chapter>_Tabulations\<Chapter>_tabulations_<LANG>.xlsx` |
+| 6 | `Compendium_6_Charts.ipynb` | `<Chapter>_EN.xlsx` | `Charts\<Chapter>_Charts\` — an SVG and a PNG per figure, `<Chapter>_charts.xlsx`, `charts_index.csv`, `chart_data_findings.txt` |
 
-- Notebooks 1–4 read and write `Merged_long_files\<Chapter>_merged_long_files\`
+- Notebooks 1–4 read and write `Merged_long_files\<Chapter>_Merged_long_files\`
   — every long file of a chapter, in both languages, and notebook 3's output,
   sits in that one folder.
-- `<Chapter>_charts.xlsx` lives only in `Charts\<Chapter>_charts\`, beside the
+- `<Chapter>_charts.xlsx` lives only in `Charts\<Chapter>_Charts\`, beside the
   SVGs and PNGs it indexes — never copied into `Merged_long_files\`, which is
   the long files' own; a copy there would just be one more place for the two
   to drift apart.
@@ -78,6 +79,10 @@
     English is therefore in the English deliverables only.
   - Both files are rebuilt from scratch on every run, which drops whatever
     notebooks 2 and 4 added — re-run 2 and 4 after 1.
+- **Source citations are translated, but never through the dictionary.**
+  Their English comes from `source translations_V2.xlsx`, applied by
+  `apply_source_translations()` right after `translate()`. See **Filling
+  dictionary gaps** below.
 - **Anything the dictionary cannot translate passes through as it is** and
   is logged as `no English translation`, with the country, indicator and
   year it appears in, and left in `GAPS` in the notebook's namespace — the
@@ -108,7 +113,9 @@
     and put into `<Chapter>_EN.xlsx`;
   - notebook 3's external rows, in English only — appended to
     `<Chapter>_EN.xlsx`, and given an Arabic form for `<Chapter>_AR.xlsx`
-    once the dictionary has one (`apply_external_gaps()`).
+    once one is on file (`apply_external_gaps()`) — from the dictionary for
+    vocabulary, from `source translations_V2.xlsx`, read English → Arabic,
+    for a Source citation.
 - **Notebook 4 strips before it appends, so it can be re-run on its own.**
   - It edits `<Chapter>_EN.xlsx` in place, the file notebook 1 wrote. It
     first removes every row an earlier run of itself added — calculated rows
@@ -135,12 +142,13 @@
 ## What the notebooks record
 
 - **Notebooks 1–5 record what they find wrong with the source data**, split
-  by what happened to it into two files per chapter, in the V2 root:
+  by what happened to it into two files per chapter, in
+  `Logs\<Chapter>_Logs\`:
   `pipeline_changes_<Chapter>.txt` for everything a run fixed, inferred, or
   added to the dictionary on its own, and
   `need manual intervention_<Chapter>.txt` for everything it left alone and
-  why — plus a `_general` pair for a dictionary-level finding with no
-  chapter of its own.
+  why — plus a `_general` pair, in `Logs\General_Logs\`, for a
+  dictionary-level finding with no chapter of its own.
   - Which file a finding lands in is decided once, by its own `kind`, in
     `save_inconsistencies()`'s `CHANGE_KINDS` set — not worked out by each
     notebook. A `kind` nobody has classified as a change yet defaults to
@@ -156,6 +164,8 @@
     calculated rows, `4b. EXTERNAL DATA` for external data's own
     English → Arabic gaps.
   - Notebook 5 logs tabulations that came out wrong.
+  - Every citation `add_source_translations()` records is logged as
+    `source translation recorded` — in `1c.` or `4d. SOURCE TRANSLATIONS`.
   - Every row `update_dictionary()` actually adds is logged as
     `dictionary entry added` — in `1b. DICTIONARY` or `4c. DICTIONARY`,
     whichever notebook's copy of the function was called.
@@ -213,7 +223,8 @@
     read in the language `detect_language()` gives it, exactly as notebook 1
     reads it — and `external data\<Chapter>\`, and writes one read-only
     `Data quality issues before pipeline execution_<Chapter>.txt` per
-    chapter: labels the dictionary can't match, Value cells
+    chapter, into `Logs\<Chapter>_Logs\`: labels the dictionary can't
+    match, Source citations not in `source translations_V2.xlsx`, Value cells
     `clean_one_value()` can't parse, structural problems, and any external
     sheet notebook 3 would refuse (found with notebook 3's own reader). This
     is Part 1's only output; a person corrects whatever it calls for
@@ -255,6 +266,20 @@
     intermediate file to apply), with the run stopped until they do.
   - The two are meant to meet in the middle: the more the before-loop
     closes, the fewer the resumed run turns up.
+- **A Source/citation is translated, but never written to the dictionary.**
+  - Claude translates it like anything else — a citation left in Arabic in an
+    English deliverable is a defect, not a policy.
+  - It is recorded in **`source translations_V2.xlsx`**, in the V2 root beside
+    the dictionary, by `add_source_translations(rows, chapter="<Chapter>")`.
+  - `update_dictionary()` **refuses** a Source row outright and logs it as
+    `source translation not added to the dictionary`, so the rule cannot be
+    broken by forgetting it.
+  - Why the split: the same statistical body is written many slightly
+    different ways across the questionnaires, each with its own qualifier
+    hanging off it. Filed in the dictionary, citations would soon be most of
+    that file; the dictionary holds the vocabulary the pipeline itself needs.
+  - Notebooks 1 and 4 read the file on every run, so no citation has to be
+    translated twice.
 
 ### Kind 1 — a value the questionnaires used
 
@@ -263,9 +288,11 @@
   after translation — an untranslated value passed through is the gap.
 - Always the English side, since every questionnaire travels Arabic →
   English.
-- Mostly Source citations: `translation dict_V2.xlsx` started with none, so
-  every statistical body and survey name is new to it the first time it is
-  seen.
+- **Mostly Source citations**, which close through
+  `add_source_translations()` rather than the dictionary — see the rule above.
+  Everything else Kind 1 turns up closes normally. In the log, a citation
+  reads `source citation not translated yet`, anything else
+  `no English translation`.
 
 ### Kind 2 — a label the pipeline invented
 
@@ -287,6 +314,9 @@
 - Closed the same way as the other kinds; see notebook 4's own intro cell
   for the two-part run this needs (append first, review `EXTERNAL_GAPS`,
   `update_dictionary()`, then `apply_external_gaps()`).
+- The external file carries citations of its own, and the same rule applies:
+  indicator names go to the dictionary, citations to
+  `source translations_V2.xlsx` — for an external citation, its Arabic form.
 
 ### The loop, any kind
 
@@ -299,12 +329,15 @@
 3. Translate them yourself. Use the official English name of a statistical
    body where one exists — search `translation dict_V2.xlsx` first, so
    wording stays consistent with what is already there.
-4. Call `update_dictionary(filled, chapter="<Chapter>")` — notebook 1 and
-   notebook 4 each carry a copy. It backs the file up first, skips rows
+4. Call `update_dictionary(filled, chapter="<Chapter>")` for vocabulary and
+   `add_source_translations(filled, chapter="<Chapter>")` for Source
+   citations — notebook 1 and notebook 4 each carry a copy of both.
+   `update_dictionary()` backs the file up first, skips rows
    already present, marks what it adds with `status = "updated"` so machine
    translations can be told from hand-typed ones, and logs every row it
    actually adds to that chapter's own `pipeline_changes_<Chapter>.txt` as
-   `dictionary entry added`.
+   `dictionary entry added`; `add_source_translations()` does the same for
+   `source translations_V2.xlsx`, as `source translation recorded`.
 5. Re-run the notebook and confirm the gap list in
    `need manual intervention_<Chapter>.txt` is empty.
 6. Report what you added, and flag any translation involving real judgement.
@@ -376,18 +409,19 @@ DATA COLLECTOR\                          inputs only - V2 reads here, never writ
 
 COMPENDIUM ARAB SOCIETY - V2\            the git repository's root; every output lands here
 ├── translation dict_V2.xlsx             the dictionary
+├── source translations_V2.xlsx          Source citations Claude translated - deliberately NOT in the dictionary
 ├── Merged_long_files\
-│   └── <Chapter>_merged_long_files\     <Chapter>_EN.xlsx, <Chapter>_AR.xlsx,
+│   └── <Chapter>_Merged_long_files\     <Chapter>_EN.xlsx, <Chapter>_AR.xlsx,
 │                                        <Chapter>_EN_external.xlsx, *_reshaped.xlsx
 ├── Tabulations\
-│   └── <Chapter>_tabulations\           <Chapter>_tabulations_EN.xlsx, <Chapter>_tabulations_AR.xlsx
+│   └── <Chapter>_Tabulations\           <Chapter>_tabulations_EN.xlsx, <Chapter>_tabulations_AR.xlsx
 ├── Charts\
-│   └── <Chapter>_charts\                the SVGs, PNGs, <Chapter>_charts.xlsx, index and findings
-├── pipeline_changes_<Chapter>.txt            what a resumed run fixed, inferred, or added
-├── pipeline_changes_general.txt              same, with no chapter of its own
-├── need manual intervention_<Chapter>.txt    what a resumed run left alone, and why
-├── need manual intervention_general.txt      same, with no chapter of its own
-├── Data quality issues before pipeline execution_<Chapter>.txt   Part 1's only output, one per chapter
+│   └── <Chapter>_Charts\                the SVGs, PNGs, <Chapter>_charts.xlsx, index and findings
+├── Logs\
+│   ├── <Chapter>_Logs\                  pipeline_changes_<Chapter>.txt            what a run fixed, inferred, or added
+│   │                                    need manual intervention_<Chapter>.txt    what a run left alone, and why
+│   │                                    Data quality issues before pipeline execution_<Chapter>.txt   Part 1's only output
+│   └── General_Logs\                    the same pair for a finding with no chapter of its own
 └── codes\                               the notebooks, this file, the runner
 ```
 
@@ -395,9 +429,9 @@ COMPENDIUM ARAB SOCIETY - V2\            the git repository's root; every output
   `Path("C:/RAFFI/DSS-local")`; change that one prefix to move the whole
   tree.
 - The outputs sit inside the repository but are not tracked — the root
-  `.gitignore` leaves out `Merged_long_files\`, `Tabulations\`, `Charts\`,
-  the findings `.txt` files and dictionary backups. `translation
-  dict_V2.xlsx` is tracked.
+  `.gitignore` leaves out `Charts\`, `Tabulations\`, `Merged_long_files\`,
+  `Logs\` and the backups. `translation dict_V2.xlsx` and
+  `source translations_V2.xlsx` are tracked.
 - `translation dict_V2.xlsx` has four columns — `col_ar`, `val_ar`, `col_en`,
   `val_en` — plus `status`, which marks the rows the pipeline added.
   - Read **Arabic → English only** everywhere except notebook 4's
@@ -410,9 +444,21 @@ COMPENDIUM ARAB SOCIETY - V2\            the git repository's root; every output
     **column** name rather than a value, e.g. a raw sheet's mistyped header.
   - `update_dictionary()` keeps both kinds; do not reintroduce a `dropna()`
     across all four columns, which silently discards the column-only rows.
+  - **Holds no Source citation values** — `update_dictionary()` refuses them;
+    see `source translations_V2.xlsx` below. The one Source row it does keep
+    is the column-only row that names the column (`المصدر` → `Source`).
   - **Edited directly by a person for a Part 1 finding** — there is no
     notebook-driven path from "Part 1 found a label" to a dictionary row;
     see `data quality/CLAUDE.md`.
+- `source translations_V2.xlsx` has `chapter`, `val_ar`, `val_en`, plus
+  `status` and `date`.
+  - Read both ways: Arabic → English for the questionnaires (notebook 1),
+    English → Arabic for external data's own citations (notebook 4).
+  - Keyed by `(chapter, exact text)`; a row with no `chapter` answers for
+    every chapter, which is what a body cited across several of them needs.
+  - Written only by `add_source_translations()` (notebooks 1 and 4), which
+    backs the file up first, skips citations already on file, and logs every
+    row it adds as `source translation recorded`.
 - `value corrections.xlsx` has `chapter`, `raw_value`, `corrected_value`,
   plus `status` and `date` the same way.
   - Read by notebook 1's `clean_one_value()` — see **Things that look wrong
@@ -430,14 +476,13 @@ COMPENDIUM ARAB SOCIETY - V2\            the git repository's root; every output
     countries), Housing 2,667, Labor 8,883, Population 19,203 (+13
     calculated), Poverty 441.
   - Tabulations for every chapter in both languages; 52 charts.
-  - **Dictionary gaps closed the same day**: 54 rows added to
-    `translation dict_V2.xlsx` (361 → 415), each under its column
-    (`المصدر` / `Source`, one `المواطنة` / `Nationality`) with
-    `status = updated` — 49 Arabic values Claude translated to English
-    through notebook 1's `update_dictionary()`, 48 of them Source
-    citations, and the external file's 5 WHO Source URLs, whose Arabic form is the URL
-    itself, through notebook 4's. `apply_external_gaps()` then wrote
-    Health's 4,916 external rows into `Health_AR.xlsx`, and 1–6 were re-run.
+  - **Gaps closed the same day.** Claude translated 48 Arabic Source
+    citations and gave the external file's 5 WHO Source URLs their Arabic
+    form (the URL itself) — all 53 recorded in `source translations_V2.xlsx`,
+    none in the dictionary. The dictionary gained one row (361 → 362),
+    Jordan's Nationality value. `apply_external_gaps()` then wrote Health's
+    4,916 external rows into `Health_AR.xlsx`, and 1–6 were re-run into the
+    `<Chapter>_<Parent>` folders.
   - Translations involving judgement: Jordan's Nationality `أردني`
     ("Jordanian") is filed as `Nationals`, the dictionary's own category;
     Libya's two documentation-centre citations may name the same body.

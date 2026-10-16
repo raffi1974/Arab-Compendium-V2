@@ -1,6 +1,6 @@
 ---
 name: indicator-classifier
-description: Runs Compendium_2_New_Indicators.ipynb, calculating derived rows (sex ratios, age-group shares) in Arabic and appending them to <Chapter>_AR.xlsx in Merged_long_files\<Chapter>_merged_long_files\. Use to run notebook 2 or calculate new indicators, after notebook 1 has produced a chapter's Arabic long file.
+description: Runs Compendium_2_New_Indicators.ipynb, calculating derived rows (sex ratios, age-group shares) in Arabic and appending them to <Chapter>_AR.xlsx in Merged_long_files\<Chapter>_Merged_long_files\. Use to run notebook 2 or calculate new indicators, after notebook 1 has produced a chapter's Arabic long file.
 tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -34,15 +34,14 @@ questionnaire — an English-only chapter gets no calculated rows.
 ## After it finishes
 
 1. Read the `### 2. NEW INDICATORS ###` section of each affected chapter's
-   own `need manual intervention_<Chapter>.txt` (in the V2 root, one level up
-   from `codes/`). What appears here is a term `term()` could not resolve to
+   own `need manual intervention_<Chapter>.txt` (in `Logs\<Chapter>_Logs\`, in the V2 root). What appears here is a term `term()` could not resolve to
    an Arabic label — a gap invented by this notebook's own calculations
    (`Sex ratio, 2010-2025 (per 100 females)`, `<15 years`, and the like), not
    something any questionnaire ever wrote.
 2. If it lists anything to close, follow CLAUDE.md's "Filling dictionary
    gaps" loop (Kind 2). Notebook 2 does not carry its own
    `update_dictionary()` — get a working one by executing notebook 4's cells
-   up to and including its `gaps` cell into a fresh namespace, without
+   up to and including its `sources` cell into a fresh namespace, without
    running notebook 4's own main loop:
 
    ```python
@@ -61,7 +60,7 @@ questionnaire — an English-only chapter gets no calculated rows.
                break
        return namespace
 
-   update_dictionary = load_up_to("Compendium_4_Translation.ipynb", "gaps")["update_dictionary"]
+   update_dictionary = load_up_to("Compendium_4_Translation.ipynb", "sources")["update_dictionary"]
    update_dictionary(filled, chapter="<Chapter>")   # filled: DataFrame with col_ar, val_ar, col_en, val_en
    ```
 

@@ -1,6 +1,6 @@
 ---
 name: tabulation-builder
-description: Runs Compendium_5_Tabulations.ipynb, building Tabulations\<Chapter>_tabulations\<Chapter>_tabulations_<LANG>.xlsx from the finished long files. Use to run notebook 5 or build tabulations. Independent of notebook 6 - both read the finished long files, neither needs the other.
+description: Runs Compendium_5_Tabulations.ipynb, building Tabulations\<Chapter>_Tabulations\<Chapter>_tabulations_<LANG>.xlsx from the finished long files. Use to run notebook 5 or build tabulations. Independent of notebook 6 - both read the finished long files, neither needs the other.
 tools: Bash, Read, Grep, Glob
 ---
 
@@ -27,7 +27,7 @@ or an error — never block on it silently, and never report a result you have
 not actually seen appear in the log. Omit `--only` to run every chapter with
 a finished long file; pass it once per chapter to limit the run. Needs
 notebook 4 (and 3, where it applies) to have already produced that chapter's
-long files in `Merged_long_files\<Chapter>_merged_long_files\` — if they do
+long files in `Merged_long_files\<Chapter>_Merged_long_files\` — if they do
 not exist, there is nothing to tabulate.
 
 There is no dictionary-gap-filling loop for this notebook — it only reads
@@ -36,8 +36,7 @@ finished, already-translated long files.
 ## After it finishes
 
 1. Read the `### 5. TABULATIONS ###` section of each affected chapter's own
-   `need manual intervention_<Chapter>.txt` (in the V2 root, one level up
-   from `codes/`) — a tabulation whose row labels collided (two different
+   `need manual intervention_<Chapter>.txt` (in `Logs\<Chapter>_Logs\`, in the V2 root) — a tabulation whose row labels collided (two different
    rows reading as one) is reported there, not fixed automatically. A finding
    here means going back to the long file that produced it, not editing the
    tabulation.

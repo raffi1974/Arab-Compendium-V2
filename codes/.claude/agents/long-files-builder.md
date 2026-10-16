@@ -1,6 +1,6 @@
 ---
 name: long-files-builder
-description: Runs Compendium_1_Long_Files.ipynb, reading every questionnaire in DATA COLLECTOR\datacollector_received_quest - Arabic or English, decided per file from its headers - translating the Arabic ones, and writing <Chapter>_EN.xlsx (everything, in English) and <Chapter>_AR.xlsx (the Arabic files as they arrived) into Merged_long_files\<Chapter>_merged_long_files\. Use to run notebook 1, build or rebuild long files, or start the pipeline on one or more chapters.
+description: Runs Compendium_1_Long_Files.ipynb, reading every questionnaire in DATA COLLECTOR\datacollector_received_quest - Arabic or English, decided per file from its headers - translating the Arabic ones, and writing <Chapter>_EN.xlsx (everything, in English) and <Chapter>_AR.xlsx (the Arabic files as they arrived) into Merged_long_files\<Chapter>_Merged_long_files\. Use to run notebook 1, build or rebuild long files, or start the pipeline on one or more chapters.
 tools: Bash, Read, Grep, Glob, Write
 ---
 
@@ -40,11 +40,11 @@ the run. The log names every file and the language it was read in.
    `pipeline_changes_<Chapter>.txt` (every column/value it corrected on its
    own) and `need manual intervention_<Chapter>.txt` (every label not in the
    dictionary, and every Arabic value with no English translation — the gaps
-   to close below) — both in the V2 root, one level up from `codes/`.
+   to close below) — both in `Logs\<Chapter>_Logs\`, in the V2 root.
 2. If it lists anything to close, follow CLAUDE.md's "Filling dictionary
-   gaps" loop (Kind 1). This notebook carries its own `update_dictionary()`,
-   in its `translate` cell, and leaves every untranslated value in `GAPS` —
-   get both by executing the notebook into a fresh namespace:
+   gaps" loop (Kind 1). This notebook carries its own `update_dictionary()`
+   and `add_source_translations()`, and leaves every untranslated value in
+   `GAPS` — get them by executing the notebook into a fresh namespace:
 
    ```python
    import json
@@ -65,16 +65,20 @@ the run. The log names every file and the language it was read in.
    ns = load_up_to("Compendium_1_Long_Files.ipynb")          # the whole run, so GAPS is filled
    filled = ns["GAPS"].drop_duplicates(["chapter", "col_ar", "val_ar"])
    filled["val_en"] = [...]                                    # by position
-   ns["update_dictionary"](filled, chapter="<Chapter>")
+   citation = filled["col_en"] == "Source"
+   ns["add_source_translations"](filled[citation], chapter="<Chapter>")   # never the dictionary
+   ns["update_dictionary"](filled[~citation], chapter="<Chapter>")
    ```
 
-   Passing `chapter` logs every row actually added to that chapter's own
-   `pipeline_changes_<Chapter>.txt` as `dictionary entry added`. Translate
+   A Source citation is never written to the dictionary — it goes to
+   `source translations_V2.xlsx`. Passing `chapter` logs every row actually
+   added to that chapter's own `pipeline_changes_<Chapter>.txt`. Translate
    each gap yourself first (check `translation dict_V2.xlsx` for existing
    wording before inventing new phrasing), attach translations by position,
    never by retyping the Arabic/English keys, then re-run notebook 1 and
    confirm `need manual intervention_<Chapter>.txt`'s `1. LONG FILES` section
-   lists no `NO ENGLISH TRANSLATION`.
+   lists no `NO ENGLISH TRANSLATION` and no `SOURCE CITATION NOT TRANSLATED
+   YET`.
 3. Report: rows written per chapter and language, which files were read as
    Arabic and which as English, corrections made, gaps you closed and what
    you translated them to, and anything you were not confident enough to

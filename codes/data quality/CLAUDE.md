@@ -4,7 +4,8 @@
   `../`. One notebook, `Compendium_Data_Quality.ipynb`.
 - Nothing here changes the data — both parts only measure and report; a
   correction Part 1 finds is made directly, by a person, in the source
-  questionnaire, `translation dict_V2.xlsx`, or `value corrections.xlsx`.
+  questionnaire, `translation dict_V2.xlsx`, `source translations_V2.xlsx`,
+  or `value corrections.xlsx`.
 - **Part 1 is the pipeline's first step, not a side notebook.** A "run the
   pipeline" request runs this first, every time, and stops here: notebook 1
   does not run until a person has reviewed what Part 1 found, made whatever
@@ -30,6 +31,8 @@
      no exact match, in either language. Below `FUZZY_MATCH_CUTOFF` is
      deliberate: a label the real pipeline would fix on its own needs no
      review.
+     A Source citation is checked against `source translations_V2.xlsx`
+     instead — citations are never kept in the dictionary.
   2. **Values that are not plain numbers, and that `clean_one_value()`
      could not make sense of on its own** — a unit phrase, a placeholder, a
      sum are all handled automatically and need no review either; this is
@@ -45,11 +48,12 @@
      — this stops at "would this be read at all", the same read-only spirit
      as check 3; the labels are checked later, by notebook 4.
 - **`Data quality issues before pipeline execution_<Chapter>.txt`**, one per
-  chapter, is Part 1's only output — `write_chapter_reports()`.
+  chapter in `Logs\<Chapter>_Logs\`, is Part 1's only output — `write_chapter_reports()`.
   - Every outstanding issue lives here, and only here — there is no separate
     action file to edit and apply. A person reads it and corrects whatever
     it calls for directly: the source questionnaire, `translation
-    dict_V2.xlsx` (in the V2 root), or `value corrections.xlsx` (in
+    dict_V2.xlsx` or `source translations_V2.xlsx` (both in the V2 root), or
+    `value corrections.xlsx` (in
     `DATA COLLECTOR\`) — then tells Claude to resume.
   - Not aggregated across chapters — the same mistyped header found in both
     Housing and Poverty gets its own line in each chapter's file, not one
@@ -69,7 +73,7 @@
 ## Part 2 — the final files: completeness, contradictions, the dashboard
 
 - Reads every `<Chapter>_EN.xlsx` under
-  `Merged_long_files\<Chapter>_merged_long_files\` and, per chapter, in one
+  `Merged_long_files\<Chapter>_Merged_long_files\` and, per chapter, in one
   pass:
 - **Completeness.**
   - For every indicator × country, how many of the 17 expected years
